@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform:
+  - AWS::Serverless-2016-10-31
+Description: Route Report application
+
+Parameters:
+  BusinessArea:
+    Type: String
+    Default: routereport
+  Env:
+    Type: String
+    Default: dev
+    AllowedValues: [ dev, prod ]
+
+Globals:
+  Function:
+    Runtime: nodejs8.10
+    Timeout: 60
+    MemorySize: 128
+    Handler: index.handler
+    Environment:
+      Variables:
+        ENV:
+          Ref: Env
+
+Resources:
+
+  # Lambda
+  RouteResourcesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./lambda/routeResources.zip
+      FunctionName:
+        Fn::Sub: '${BusinessArea}-routeresources-${Env}'
+
+  # Api gw
+  ApiGwAccountConfig:
+    Type: "AWS::ApiGateway::Account"
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt: [ApiGatewayLoggingRole, Arn]
+  ApiGatewayLoggingRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - Fn::Sub: "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+
+  RouteGwApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      DefinitionBody: !include api-gw/swagger.yaml
+      Name:
+        Fn::Sub: '${BusinessArea}-v1-${Env}'
+      StageName:
+        Ref: Env
+      MethodSettings:
+        - HttpMethod: '*'
+          ResourcePath: /*
+          LoggingLevel: "INFO"
+          MetricsEnabled: true
+          DataTraceEnabled: true
+
+  # S3
+  WebappBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName:
+        Fn::Sub: '${BusinessArea}-webapp-${Env}'
+
+  WebappBucketPolicy: 
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: 
+        Ref: WebappBucket
+      PolicyDocument: 
+        Statement: 
+          - 
+            Action: 
+              - "s3:GetObject"
+            Effect: "Allow"
+            Resource: 
+              Fn::Join: 
+                - ""
+                - 
+                  - "arn:aws:s3:::"
+                  - 
+                    Ref: WebappBucket
+                  - "/*"
+            Principal: "*"
+
+  OriginAccessId:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+        CloudFrontOriginAccessIdentityConfig:
+            Comment: "MyDescription"
+
+#  AcmCertificate:
+#    Type: AWS::CertificateManager::Certificate
+#    Properties: 
+#      DomainName: routereport.cf
+
+
+  # Cloudfront
+  WebappCloudFront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        #Aliases:
+        #- routereport.cf
+        Origins:
+        - DomainName:
+            Fn::GetAtt:
+              - WebappBucket
+              - DomainName
+          Id:
+            Ref: WebappBucket
+          S3OriginConfig:
+            OriginAccessIdentity: { "Fn::Join" : ["", ["origin-access-identity/cloudfront/", { Ref: OriginAccessId } ] ]  }
+        Enabled: 'true'
+        Comment: Some comment
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          AllowedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+          TargetOriginId:
+            Ref: WebappBucket
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https

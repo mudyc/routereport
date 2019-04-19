@@ -1,0 +1,30 @@
+{
+  "name": "routereport",
+  "version": "1.0.0",
+  "description": "Route Report application",
+  "scripts": {
+    "lint": "standard",
+    "_prebuild:node-lambdas": "npm run lint",
+    "_build:node-lambdas": "node scripts/build-lambdas",
+    "_prebuild": "npm run build:node-lambdas",
+    "build": "cfbuild template -t template.yaml -o built_template.yaml",
+    "bucket": " aws s3api create-bucket --bucket routereport-cloudformation-build --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1",
+    "build-lambda": "cfbuild lambda -d lambda/routeResources -o lambda/routeResources.zip",
+    "package": "aws cloudformation package --template-file built_template.yaml --s3-bucket routereport-cloudformation-build --s3-prefix routereport --output-template-file packaged_template.yaml",
+    "deploy": "aws cloudformation deploy --stack-name routereport-dev --template-file packaged_template.yaml --s3-bucket routereport-cloudformation-build --s3-prefix routereport --capabilities CAPABILITY_NAMED_IAM --parameter-overrides Env=dev --region eu-west-1"
+  },
+  "author": "Matti Katila",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "cfbuild": "^1.1.2",
+    "chalk": "^2.4.1",
+    "concurrently": "^3.5.1",
+    "cross-spawn": "^6.0.5",
+    "fs-extra": "^6.0.1",
+    "mocha": "^5.2.0",
+    "standard": "^11.0.1"
+  },
+  "devDependencies": {
+    "jszip": "^3.1.5"
+  }
+}
