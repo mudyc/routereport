@@ -211,27 +211,57 @@ class SplitCanvas extends React.Component {
 
         const moving = this.getData('moving')
         if (moving) {
-            for (var x = 0; x < canvas.width; x += 1) {
-                if (!moving[freq * x])
-                    ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
-            } 
+            ctx.beginPath()
             ctx.strokeStyle = "#eaa"
+            for (var x = 0; x < canvas.width; x += 1) {
+                if (!moving[freq * x]) {
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                }
+            }
             ctx.stroke()
         }
 
         const alt = this.getData('altitude')
         if (alt) {
+            ctx.beginPath()
+            ctx.strokeStyle = "#bbb"
             const min = Math.min.apply(null, alt)
             const rel = Math.max.apply(null, alt) - min
             for (var x = 0; x < canvas.width; x += 1) {
                 const y = (alt[freq * x] - min) / rel
-                console.log(y)
-                ctx.moveTo(x, 50); ctx.lineTo(x, 50-(50*y));
+                ctx.moveTo(x, 50);
+                ctx.lineTo(x, 50-(50*y));
             }
-            ctx.strokeStyle = "#bbb"
             ctx.stroke()
         }
-
+/*
+        const velocity = this.getData('velocity_smooth')
+        if (velocity) {
+            ctx.beginPath()
+            ctx.strokeStyle = "#33d"
+            ctx.moveTo(0, 50);
+            const max = Math.max.apply(null, velocity)
+            for (var x = 0; x < canvas.width; x += 1) {
+                const y = velocity[freq * x] / max
+                ctx.lineTo(x, 50-(50*y));
+            }
+            ctx.stroke()
+        }
+        const heartrate = this.getData('heartrate')
+        if (heartrate) {
+            ctx.beginPath()
+            ctx.strokeStyle = "#f00"
+            ctx.moveTo(0, 50);
+            const max = Math.max.apply(null, heartrate)
+            const min = Math.min.apply(null, heartrate)
+            for (var x = 0; x < canvas.width; x += 1) {
+                const y = (heartrate[freq * x] - min) / (max-min)
+                ctx.lineTo(x, 50-(50*y));
+            }
+            ctx.stroke()
+        }
+*/
 
         const map = L.map(this.refs.map)
         L.tileLayer('https://b.tile.openstreetmap.org/{z}/{x}/{y}.png', {
