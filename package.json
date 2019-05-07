@@ -4,9 +4,6 @@
   "description": "Route Report application",
   "scripts": {
     "lint": "standard",
-    "_prebuild:node-lambdas": "npm run lint",
-    "_build:node-lambdas": "node scripts/build-lambdas",
-    "_prebuild": "npm run build:node-lambdas",
     "build": "cfbuild template -t template.yaml -o built_template.yaml",
     "bucket": " aws s3api create-bucket --bucket routereport-cloudformation-build --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1",
     "build-lambda": 
