@@ -1,0 +1,35 @@
+Plan
+====
+
+Keep things very simple.
+
+Use cfbuild since it is fast enough.
+Own build script maybe. Just basics.
+
+What is needed?
+ cloudfront
+ S3
+ ApiGW
+ Lambda
+ DynamoDB
+
+Thus, someone can build up a simple routereport app by deploying
+the stack but I shouldn't be scared.
+
+code build
+cfbuild
+deploy stack
+
+
+Builder user
+------------
+
+Quite a lot of different roles..
+
+
+Strava hidden strems api
+------------------------
+
+For activity youcan request for stream of data.
+
+/activities/id/streams?keys=latlng,altitude,velocity_smooth,time,moving,

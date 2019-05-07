@@ -3,6 +3,117 @@ swagger: "2.0"
 schemes:
 - "https"
 paths:
+  # Strava API
+  ## OAuth2 authentication callback
+  /strava/callback:
+    get:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "code"
+        in: "query"
+        required: true
+        type: "string"
+      - name: "Origin"
+        in: "header"
+        required: false
+        type: "string"
+      responses: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StravaApiFunction.Arn}/invocations"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
+
+  /strava/selection:
+    get:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "year"
+        in: "query"
+        required: true
+        type: "string"
+      - name: "month"
+        in: "query"
+        required: true
+        type: "string"
+      - name: "Cookie"
+        in: "header"
+        required: false
+        type: "string"
+      - name: "Origin"
+        in: "header"
+        required: false
+        type: "string"
+      responses: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StravaApiFunction.Arn}/invocations"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
+  /strava/create/{id}:
+    get:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+      - name: "Cookie"
+        in: "header"
+        required: false
+        type: "string"
+      - name: "Origin"
+        in: "header"
+        required: false
+        type: "string"
+      responses: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StravaApiFunction.Arn}/invocations"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
+  /strava/activity/{id}:
+    get:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        type: "string"
+      - name: "Cookie"
+        in: "header"
+        required: false
+        type: "string"
+      responses: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StravaApiFunction.Arn}/invocations"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws_proxy"
+
+
+
+
   /route:
     get:
       produces:

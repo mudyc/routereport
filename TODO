@@ -1,0 +1,25 @@
+
+
+DONE - create .secret file
+DONE - put src in github
+DONE - write token -> user to dynamodb
+DONE - write user -> data, reports left
+DONE - fetch selectable routes by each month
+DONE - list routes, km, hour, pace etc.
+Report -button, if report exists, edit button
+if no reports left, provide page to buy more
+DONE - fetch route data and write it into s3 /activity/<id>/data.json
+DONE - start editor view
+split editor
+text editor
+auto save
+publish button / unpublish button -> write/remove index.html to s3
+link commenting to Strava
+profile, reports left, buy more
+
+buy routereport.org
+
+stripe integration for payment
+
+indexing reports?
+

@@ -9,9 +9,10 @@
     "_prebuild": "npm run build:node-lambdas",
     "build": "cfbuild template -t template.yaml -o built_template.yaml",
     "bucket": " aws s3api create-bucket --bucket routereport-cloudformation-build --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1",
-    "build-lambda": "cfbuild lambda -d lambda/routeResources -o lambda/routeResources.zip",
+    "build-lambda": 
+      "cfbuild lambda -d lambda/routeResources -o lambda/routeResources.zip &&  cfbuild lambda -d lambda/strava -o lambda/strava.zip",
     "package": "aws cloudformation package --template-file built_template.yaml --s3-bucket routereport-cloudformation-build --s3-prefix routereport --output-template-file packaged_template.yaml",
-    "deploy": "aws cloudformation deploy --stack-name routereport-dev --template-file packaged_template.yaml --s3-bucket routereport-cloudformation-build --s3-prefix routereport --capabilities CAPABILITY_NAMED_IAM --parameter-overrides Env=dev --region eu-west-1"
+    "deploy": "source .secret && aws cloudformation deploy --stack-name routereport-dev --template-file packaged_template.yaml --s3-bucket routereport-cloudformation-build --s3-prefix routereport --capabilities CAPABILITY_NAMED_IAM --parameter-overrides Env=dev --parameter-overrides ClientId=\"$client_id\" ClientSecret=\"$client_secret\" --region eu-west-1"
   },
   "author": "Matti Katila",
   "license": "UNLICENSED",

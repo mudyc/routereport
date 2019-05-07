@@ -1,0 +1,14 @@
+{
+  "name": "strava",
+  "version": "1.0.0",
+  "description": "OAuth2 callback handler to do exchange with other service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "matti.katila@gmail.com",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "bl": "^3.0.0"
+  }
+}

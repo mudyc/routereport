@@ -11,6 +11,10 @@ Parameters:
     Type: String
     Default: dev
     AllowedValues: [ dev, prod ]
+  ClientId:
+    Type: String
+  ClientSecret:
+    Type: String
 
 Globals:
   Function:
@@ -25,7 +29,79 @@ Globals:
 
 Resources:
 
+  # DynamoDB
+  AuthTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Fn::Sub: '${BusinessArea}-auth-${Env}'
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: token
+          AttributeType: S
+        #- AttributeName: reportsLeft
+        #  AttributeType: N
+        #- AttributeName: reportsCreated
+        #  AttributeType: N
+        #- AttributeName: athlete
+        #  AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      GlobalSecondaryIndexes:
+        - IndexName: token2userId
+          KeySchema:
+            - AttributeName: token
+              KeyType: HASH
+          Projection:
+            ProjectionType: KEYS_ONLY
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+
+
   # Lambda
+  StravaApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./lambda/strava.zip
+      FunctionName:
+        Fn::Sub: '${BusinessArea}-strava-${Env}'
+      Environment:
+        Variables:
+          dynamoTable:
+            Ref: AuthTable
+          reportsBucket:
+            Ref: WebappBucket
+          client_id:
+            Ref: ClientId
+          client_secret:
+            Ref: ClientSecret
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+                - dynamodb:PutItem
+                - dynamodb:Scan
+                - dynamodb:Query
+                - dynamodb:UpdateItem
+                - dynamodb:BatchWriteItem
+                - dynamodb:BatchGetItem
+              Resource:
+                - Fn::Sub: "arn:${AWS::Partition}:dynamodb:${AWS::Region}:*:table/${AuthTable}/*"
+                - Fn::Sub: "arn:${AWS::Partition}:dynamodb:${AWS::Region}:*:table/${AuthTable}"
+        - S3CrudPolicy:
+            BucketName:
+              Fn::Sub: '${BusinessArea}-webapp-${Env}'
+
+
   RouteResourcesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -115,8 +191,8 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        #Aliases:
-        #- routereport.cf
+        Aliases:
+        - routereport.cf
         Origins:
         - DomainName:
             Fn::GetAtt:
@@ -141,3 +217,13 @@ Resources:
             Cookies:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
+
+  # Domain name
+  # https://cloudonaut.io/pitfall-acm-certificate-cloudfront-cloudformation/
+  # https://binx.io/blog/2018/10/05/automated-provisioning-of-acm-certificates-using-route53-in-cloudformation/
+  #Certificate:
+  #  #Type: Custom::Certificate
+  #  Type: AWS::CertificateManager::Certificate
+  #  Properties:
+  #    DomainName: routereport.cf
+  #    ValidationMethod: DNS
